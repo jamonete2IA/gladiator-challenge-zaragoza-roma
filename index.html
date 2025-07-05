@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gladiator Challenge - Zaragoza a Roma</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --gold: #FFD700;
+            --dark-gold: #B8860B;
+            --roman-red: #8B0000;
+            --dark-red: #5D0000;
+            --bronze: #CD7F32;
+            --marble: #F8F8FF;
+            --dark-marble: #E6E6FA;
+            --charcoal: #36454F;
+            --ivory: #FFFFF0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--dark-red) 50%, var(--roman-red) 100%);
+            min-height: 100vh;
+            color: var(--ivory);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1539650116574-75c0c6d81d3d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80') center/cover;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        .navbar {
+            background: linear-gradient(90deg, var(--roman-red), var(--dark-red));
+            border-bottom: 3px solid var(--gold);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .navbar-brand {
+            font-family: 'Cinzel Decorative', serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: var(--gold) !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .navbar-text {
+            color: var(--ivory) !important;
+            font-weight: 600;
+        }
+
+        .card {
+            background: rgba(248, 248, 255, 0.95);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            color: var(--charcoal);
+            backdrop-filter: blur(10px);
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--roman-red), var(--dark-red));
+            position: relative;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80') center/cover;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .login-card {
+            background: rgba(248, 248, 255, 0.95);
+            border: 3px solid var(--gold);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            width: 100%;
+            max-width: 450px;
+            color: var(--charcoal);
+            backdrop-filter: blur(15px);
+        }
+
+        .login-title {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 2.5rem;
+            color: var(--roman-red);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 1rem;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--dark-gold) 100%);
+            color: var(--charcoal);
+            border: 2px solid var(--bronze);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.1) 10px,
+                rgba(255,255,255,0.1) 20px
+            );
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .stats-card.emperor {
+            background: linear-gradient(135deg, var(--gold) 0%, #FFA500 100%);
+            border-color: var(--roman-red);
+        }
+
+        .stats-card.centurion {
+            background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+            border-color: var(--charcoal);
+        }
+
+        .stats-card.gladiator {
+            background: linear-gradient(135deg, var(--bronze) 0%, #8B4513 100%);
+            border-color: var(--dark-red);
+        }
+
+        .stats-card h3 {
+            font-size: 2.5rem;
+            font-family: 'Cinzel Decorative', serif;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stats-card p {
+            font-size: 1.1rem;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .motivational-banner {
+            background: linear-gradient(135deg, var(--roman-red), var(--dark-red));
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--ivory);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .motivational-banner h4 {
+            font-family: 'Cinzel Decorative', serif;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .motivational-banner p {
+            font-style: italic;
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+
+        .ranking-item {
+            background: rgba(248, 248, 255, 0.95);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            color: var(--charcoal);
+            backdrop-filter: blur(10px);
+        }
+
+        .medal {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.5rem;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: white;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .medal.emperor { 
+            background: linear-gradient(135deg, var(--gold), #FFA500);
+            font-family: 'Cinzel Decorative', serif;
+        }
+        .medal.centurion { 
+            background: linear-gradient(135deg, #C0C0C0, #A8A8A8);
+            font-family: 'Cinzel Decorative', serif;
+        }
+        .medal.gladiator { 
+            background: linear-gradient(135deg, var(--bronze), #8B4513);
+            font-family: 'Cinzel Decorative', serif;
+        }
+        .medal.citizen { 
+            background: linear-gradient(135deg, var(--charcoal), #2F4F4F);
+            font-family: 'Cinzel', serif;
+        }
+
+        .sidebar {
+            background: rgba(248, 248, 255, 0.95);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            color: var(--charcoal);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-link {
+            color: var(--charcoal);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: linear-gradient(135deg, var(--roman-red), var(--dark-red));
+            color: var(--ivory) !important;
+            border-color: var(--gold);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .activity-form {
+            background: rgba(248, 248, 255, 0.95);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            color: var(--charcoal);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--roman-red), var(--dark-red));
+            border: 2px solid var(--gold);
+            color: var(--ivory);
+            font-weight: 600;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--dark-red), var(--roman-red));
+            border-color: var(--gold);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--gold), var(--dark-gold));
+            border: 2px solid var(--bronze);
+            color: var(--charcoal);
+            font-weight: 600;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, var(--dark-gold), var(--gold));
+            color: var(--charcoal);
+            transform: translateY(-2px);
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--gold), var(--dark-gold));
+            border-radius: 10px;
+        }
+
+        .progress {
+            background: var(--charcoal);
+            border-radius: 10px;
+            height: 25px;
+            border: 1px solid var(--gold);
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 15px;
+            border: 2px solid var(--gold);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--gold);
+            border-radius: 10px;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.9);
+            color: var(--charcoal);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--roman-red);
+            box-shadow: 0 0 0 0.2rem rgba(139, 0, 0, 0.25);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, var(--gold), var(--dark-gold));
+            border: 2px solid var(--bronze);
+            color: var(--charcoal);
+            border-radius: 10px;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, var(--roman-red), var(--dark-red));
+            border: 2px solid var(--gold);
+            color: var(--ivory);
+            border-radius: 10px;
+        }
+
+        .loading-spinner {
+            display: none;
+        }
+
+        .loading-spinner.show {
+            display: inline-block;
+        }
+
+        .page-hidden { display: none; }
+        .page-visible { display: block; }
+
+        .epic-quote {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 1.2rem;
+            color: var(--gold);
+            text-align: center;
+            margin: 1rem 0;
+            font-style: italic;
+        }
+
+        .achievement-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--gold);
+            color: var(--charcoal);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .container-fluid {
+            max-width: 1400px;
+        }
+
+        @media (max-width: 768px) {
+            .login-title {
+                font-size: 2rem;
+            }
+            
+            .stats-card h3 {
+                font-size: 2rem;
+            }
+            
+            #map {
+                height: 300px;
+            }
+        }
+
+        .warrior-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Página de Login -->
+    <div id="loginPage" class="page-visible">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="text-center mb-4">
+                    <h1 class="login-title">⚔️ GLADIATOR CHALLENGE</h1>
+                    <p class="epic-quote">Zaragoza → Roma (1634 km)</p>
+                    <p style="color: var(--roman-red); font-weight: 600;">"Veni, Vidi, Vici"</p>
+                </div>
+                
+                <!-- Alertas -->
+                <div id="loginAlerts"></div>
+                
+                <div id="loginForm">
+                    <form id="loginFormElement">
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 600;">Email del Guerrero</label>
+                            <input type="email" class="form-control" id="loginEmail" required value="ana@demo.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 600;">Contraseña</label>
+                            <input type="password" class="form-control" id="loginPassword" required value="demo123">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mb-3 warrior-animation">
+                            <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                            <i class="fas fa-shield-alt"></i> Entrar al Coliseo
+                        </button>
+                    </form>
+                    <div class="text-center">
+                        <a href="#" id="showRegister" style="color: var(--roman-red); font-weight: 600;">¿Nuevo gladiador? Únete al desafío</a>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small style="color: var(--charcoal);">
+                            <strong>Gladiadores demo:</strong><br>
+                            ana@demo.com / carlos@demo.com<br>
+                            <strong>Contraseña:</strong> demo123
+                        </small>
+                    </div>
+                </div>
+
+                <div id="registerForm" class="page-hidden">
+                    <form id="registerFormElement">
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 600;">Nombre del Guerrero</label>
+                            <input type="text" class="form-control" id="registerName" required placeholder="Ej: Maximus Decimus">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 600;">Email</label>
+                            <input type="email" class="form-control" id="registerEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 600;">Contraseña</label>
+                            <input type="password" class="form-control" id="registerPassword" required minlength="4">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 600;">Meta Personal (km)</label>
+                            <input type="number" class="form-control" id="registerGoal" placeholder="¿Cuántos km conquistarás?">
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 mb-3">
+                            <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                            <i class="fas fa-crown"></i> Convertirse en Gladiador
+                        </button>
+                    </form>
+                    <div class="text-center">
+                        <a href="#" id="showLogin" style="color: var(--roman-red); font-weight: 600;">¿Ya eres gladiador? Entra aquí</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Página Principal (Arena) -->
+    <div id="dashboardPage" class="page-hidden">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-shield-alt"></i> GLADIATOR CHALLENGE
+                </a>
+                <div class="navbar-nav ms-auto">
+                    <span class="navbar-text me-3">
+                        <i class="fas fa-user-shield"></i> Gladiador <span id="userNameNav" style="color: var(--gold);"></span>
+                    </span>
+                    <button class="btn btn-outline-light btn-sm" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Abandonar Arena
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid mt-4">
+            <!-- Banner Motivacional -->
+            <div id="motivationalBanner" class="motivational-banner">
+                <h4><i class="fas fa-fire"></i> <span id="motivationalTitle">¡Salve, Gladiador!</span></h4>
+                <p id="motivationalMessage">Tu destino te espera en el Coliseo de Roma. ¡Demuestra tu valor!</p>
+            </div>
+
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-lg-3">
+                    <div class="sidebar">
+                        <h5 class="text-center mb-3" style="color: var(--roman-red); font-family: 'Cinzel Decorative', serif;">
+                            <i class="fas fa-columns"></i> ARENA DE COMBATE
+                        </h5>
+                        <nav class="nav flex-column">
+                            <a class="nav-link active" href="#" data-page="dashboard">
+                                <i class="fas fa-tachometer-alt me-2"></i> Panel de Honor
+                            </a>
+                            <a class="nav-link" href="#" data-page="activities">
+                                <i class="fas fa-running me-2"></i> Registrar Batalla
+                            </a>
+                            <a class="nav-link" href="#" data-page="ranking">
+                                <i class="fas fa-trophy me-2"></i> Ranking Imperial
+                            </a>
+                            <a class="nav-link" href="#" data-page="profile">
+                                <i class="fas fa-user-crown me-2"></i> Perfil de Guerrero
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Contenido Principal -->
+                <div class="col-lg-9">
+                    <!-- Alertas generales -->
+                    <div id="dashboardAlerts"></div>
+
+                    <!-- Dashboard -->
+                    <div id="dashboardContent" class="page-content">
+                        <!-- Estadísticas -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="stats-card emperor">
+                                    <h3 id="totalKm">0</h3>
+                                    <p><i class="fas fa-route"></i> Kilómetros Conquistados</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card centurion">
+                                    <h3 id="currentPosition">-</h3>
+                                    <p><i class="fas fa-medal"></i> Rango en el Imperio</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card gladiator">
+                                    <h3 id="nextCity">Zaragoza</h3>
+                                    <p><i class="fas fa-map-marker-alt"></i> Próxima Conquista</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progreso General -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title" style="color: var(--roman-red); font-family: 'Cinzel Decorative', serif;">
+                                    <i class="fas fa-empire"></i> Progreso del Ejército Imperial
+                                </h5>
+                                <div class="progress mb-3">
+                                    <div class="progress-bar" id="groupProgress" role="progressbar" style="width: 0%">
+                                        <span id="progressText" style="color: var(--charcoal); font-weight: 600;"></span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small style="color: var(--charcoal); font-weight: 600;">🏛️ Zaragoza</small>
+                                    <small style="color: var(--charcoal); font-weight: 600;" id="groupTotalKm">0 km de 1634 km</small>
+                                    <small style="color: var(--charcoal); font-weight: 600;">🏛️ Roma</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mapa -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title" style="color: var(--roman-red); font-family: 'Cinzel Decorative', serif;">
+                                    <i class="fas fa-map"></i> Mapa del Imperio
+                                </h5>
+                                <div id="map"></div>
+                            </div>
+                        </div>
+
+                        <!-- Actividades Recientes -->
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title" style="color: var(--roman-red); font-family: 'Cinzel Decorative', serif;">
+                                    <i class="fas fa-scroll"></i> Últimas Batallas
+                                </h5>
+                                <div id="recentActivities">
+                                    <div class="text-center">
+                                        <div class="spinner-border" style="color: var(--roman-red);" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Registrar Actividades -->
+                    <div id="activitiesContent" class="page-content page-hidden">
+                        <div class="activity-form">
+                            <h4 class="mb-4" style="color: var(--roman-red); font-family: 'Cinzel Decorative', serif;">
+                                <i class="fas fa-sword"></i> Registrar Nueva Batalla
+                            </h4>
+                            <p class="epic-quote">"Audacia y honor en cada paso hacia Roma"</p>
+                            <form id="activityForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="font-weight: 600;">Fecha de la Batalla</label>
+                                        <input type="date" class="form-control" id="activityDate" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="font-weight: 600;">Tipo de Combate</label>
+                                        <select class="form-select" id="activityType" required>
+                                            <option value="">Seleccionar tipo...</option>
+                                            <option value="correr">⚔️ Carrera de Combate</option>
+                                            <option value="caminar">🛡️ Marcha Táctica</option>
+                                            <option value="bicicleta">🐎 Carrera de Carros (÷3)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" style="font-weight: 600;">Distancia Conquistada (km)</label>
+                                    <input type="number" class="form-control" id="activityDistance" step="0.1" min="0.1" max="50" required>
+                                    <div class="form-text">Máximo 50 km por batalla</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" style="font-weight: 600;">Crónicas de la Batalla (opcional)</label>
+                                    <textarea class="form-control" id="activityComment" rows="3" placeholder="Describe tu valor en el combate..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary warrior-animation">
+                                    <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                                    <i class="fas fa-flag-checkered"></i> Proclamar Victoria
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Historial de Actividades -->
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <h5 class="card-title" style="color: var(--roman-red); font-family: 'Cinzel Decorative', serif;">
+                                    <i class="fas fa-history"></i> Historial de Batallas
+                                </h5>
+                                <div id="activitiesHistory">
+                                    <div class="text-center">
+                                        <div class="spinner-border" style="color: var(--roman-red);" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rankings -->
+                    <div id="rankingContent" class="page-content page-hidden">
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h4 class="card-title" style="color: var(--roman-red); font-family: 'Cinzel Decorative', serif;">
+                                            <i class="fas fa-crown"></i> Ranking Imperial
+                                        </h4>
+                                        <p class="epic-quote">"Gloria eterna a los más valientes"</p>
+                                        <div id="generalRanking">
+                                            <div class="text-center">
+                                                <div class="spinner-border" style="color: var(--roman-red);" role="status">
+                                                    <span class="visually-hidden">Cargando...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Perfil -->
+                    <div id="profileContent" class="page-content page-hidden">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title" style="color: var(--roman-red); font-family: 'Cinzel Decorative', serif;">
+                                    <i class="fas fa-user-shield"></i> Perfil del Gladiador
+                                </h4>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 style="color: var(--roman-red); font-weight: 600;">Información Personal</h6>
+                                        <p><strong>Nombre:</strong> <span id="profileName">-</span></p>
+                                        <p><strong>Email:</strong> <span id="profileEmail">-</span></p>
+                                        <p><strong>Meta Personal:</strong> <span id="profileGoal">-</span> km</p>
+                                        <p><strong>Gladiador desde:</strong> <span id="profileSince">-</span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 style="color: var(--roman-red); font-weight: 600;">Logros en el Combate</h6>
+                                        <p><strong>Kilómetros Conquistados:</strong> <span id="profileTotalKm">0</span></p>
+                                        <p><strong>Batallas Libradas:</strong> <span id="profileActivities">0</span></p>
+                                        <p><strong>Promedio por Batalla:</strong> <span id="profileAverage">0</span> km</p>
+                                        <p><strong>Rango Actual:</strong> <span id="profileRank">Recluta</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // ============================================
+        // CONFIGURACIÓN DE LA API
+        // ============================================
+        
+        const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbwPJsQkSm8KQPyQQBdv109mk9ld-Fxy0hYbt8k3K-wyPlEAOLJRfkTGq_bgGkNTbG_0/exec';
+        
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        
+        let currentUser = null;
+        let map = null;
+        let userMarkers = [];
+        let rankingData = null;
+        let userActivities = [];
+        let isDebugMode = false;
+        
+        // Datos de las ciudades del recorrido
+        const ciudades = [
+            { nombre: "Zaragoza", km: 0, lat: 41.6488, lng: -0.8891, descripcion: "¡Punto de partida hacia la gloria!" },
+            { nombre: "Barcelona", km: 300, lat: 41.3851, lng: 2.1734, descripcion: "Primera conquista del mediterráneo" },
+            { nombre: "Montpellier", km: 550, lat: 43.6108, lng: 3.8767, descripcion: "Cruzando las fronteras galas" },
+            { nombre: "Marsella", km: 750, lat: 43.2965, lng: 5.3698, descripcion: "Puerto de los antiguos héroes" },
+            { nombre: "Niza", km: 900, lat: 43.7102, lng: 7.2620, descripcion: "Riviera de los dioses" },
+            { nombre: "Génova", km: 1200, lat: 44.4056, lng: 8.9463, descripcion: "Puertas del Imperio Romano" },
+            { nombre: "Pisa", km: 1400, lat: 43.7228, lng: 10.4017, descripcion: "Torre de los valientes" },
+            { nombre: "Roma", km: 1634, lat: 41.9028, lng: 12.4964, descripcion: "¡COLISEO IMPERIAL - GLORIA ETERNA!" }
+        ];
+
+        // Frases motivacionales
+        const motivationalMessages = {
+            welcome: [
+                "¡Salve, noble gladiador! Tu destino te espera en Roma.",
+                "El Coliseo aguarda tu llegada, guerrero valiente.",
+                "Que los dioses te acompañen en tu travesía épica."
+            ],
+            lowActivity: [
+                "¡Mars te llama a la batalla! Es hora de retomar el camino.",
+                "Un gladiador verdadero nunca se rinde. ¡Levántate y corre!",
+                "Roma no se construyó en un día, pero cada paso cuenta."
+            ],
+            goodProgress: [
+                "¡Excelente, guerrero! Tu disciplina honra a los dioses.",
+                "Tus pasos resuenan como los de un verdadero campeón.",
+                "¡Sigue así! El Coliseo se acerca cada día más."
+            ],
+            nearGoal: [
+                "¡Gloria eterna! Estás cerca de la meta imperial.",
+                "Los dioses sonríen sobre ti, noble gladiador.",
+                "¡Roma te espera! Tus logros serán recordados por siempre."
+            ]
+        };
+
+        // ============================================
+        // FUNCIONES DE DEBUG
+        // ============================================
+
+        function debugLog(message, data = null) {
+            if (isDebugMode) {
+                console.log(`🔍 DEBUG: ${message}`, data || '');
+            }
+        }
+
+        // ============================================
+        // FUNCIÓN JSONP PARA EVITAR CORS
+        // ============================================
+
+        function apiRequestJSONP(endpoint, data = null) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                debugLog(`JSONP Request: ${endpoint}`, data);
+                
+                // Crear URL con parámetros
+                let url = `${API_BASE_URL}?path=${endpoint}&callback=${callbackName}`;
+                
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        url += `&${key}=${encodeURIComponent(data[key])}`;
+                    });
+                }
+                
+                debugLog('JSONP URL:', url);
+                
+                // Callback global
+                window[callbackName] = function(response) {
+                    cleanup();
+                    debugLog('JSONP Response:', response);
+                    
+                    if (response.success) {
+                        resolve(response.data);
+                    } else {
+                        reject(new Error(response.error || 'Error desconocido'));
+                    }
+                };
+                
+                // Función de limpieza
+                function cleanup() {
+                    if (script && script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    if (window[callbackName]) {
+                        delete window[callbackName];
+                    }
+                }
+                
+                // Crear script tag
+                const script = document.createElement('script');
+                script.src = url;
+                script.onerror = function() {
+                    cleanup();
+                    reject(new Error('Error de red al cargar el script'));
+                };
+                
+                // Timeout
+                setTimeout(() => {
+                    cleanup();
+                    reject(new Error('Timeout: La petición tardó demasiado (30s)'));
+                }, 30000);
+                
+                document.head.appendChild(script);
+            });
+        }
+
+        // ============================================
+        // FUNCIONES DE UTILIDAD
+        // ============================================
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('es-ES');
+        }
+
+        function showAlert(containerId, message, type = 'danger') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            // Limpiar alertas anteriores
+            container.innerHTML = '';
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            container.appendChild(alertDiv);
+            
+            // Auto-remover después de 5 segundos
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function showLoading(buttonElement, show = true) {
+            const spinner = buttonElement.querySelector('.loading-spinner');
+            if (spinner) {
+                spinner.classList.toggle('show', show);
+            }
+            buttonElement.disabled = show;
+        }
+
+        function getRandomMessage(type) {
+            const messages = motivationalMessages[type] || motivationalMessages.welcome;
+            return messages[Math.floor(Math.random() * messages.length)];
+        }
+
+        function updateMotivationalBanner() {
+            if (!currentUser || !rankingData) return;
+
+            const userStats = rankingData.ranking.find(user => user.id === currentUser.id);
+            const totalKm = userStats ? userStats.totalKm : 0;
+            const weeklyKm = calculateWeeklyKm();
+            
+            let messageType = 'welcome';
+            let title = '¡Salve, Gladiador!';
+            
+            if (totalKm > 1500) {
+                messageType = 'nearGoal';
+                title = '¡EMPERADOR SUPREMO!';
+            } else if (totalKm > 800) {
+                messageType = 'goodProgress';
+                title = '¡CENTURIÓN VALIENTE!';
+            } else if (weeklyKm < 10) {
+                messageType = 'lowActivity';
+                title = '¡MARS TE LLAMA!';
+            }
+            
+            document.getElementById('motivationalTitle').textContent = title;
+            document.getElementById('motivationalMessage').textContent = getRandomMessage(messageType);
+        }
+
+        function calculateWeeklyKm() {
+            if (!userActivities) return 0;
+            
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            
+            return userActivities
+                .filter(activity => new Date(activity.fecha) >= oneWeekAgo)
+                .reduce((sum, activity) => sum + parseFloat(activity.distancia || 0), 0);
+        }
+
+        function getRankTitle(totalKm) {
+            if (totalKm >= 1500) return 'Emperador';
+            if (totalKm >= 1000) return 'Centurión';
+            if (totalKm >= 500) return 'Gladiador';
+            return 'Recluta';
+        }
+
+        // ============================================
+        // FUNCIONES DE API CON JSONP
+        // ============================================
+
+        async function login(email, password) {
+            debugLog('Intentando login con JSONP', { email });
+            
+            try {
+                const result = await apiRequestJSONP('login', { email, password });
+                currentUser = result.user;
+                
+                debugLog('Login exitoso', currentUser);
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                return true;
+            } catch (error) {
+                debugLog('Error en login', error);
+                throw error;
+            }
+        }
+
+        async function register(nombre, email, password, objetivo) {
+            debugLog('Intentando registro con JSONP', { nombre, email, objetivo });
+            
+            try {
+                const result = await apiRequestJSONP('register', {
+                    nombre, email, password, objetivo
+                });
+                
+                debugLog('Registro exitoso', result);
+                return result;
+            } catch (error) {
+                debugLog('Error en registro', error);
+                throw error;
+            }
+        }
+
+        async function loadUserActivities() {
+            debugLog('Cargando actividades con JSONP');
+            
+            try {
+                userActivities = await apiRequestJSONP('activities', { user_id: currentUser.id });
+                debugLog('Actividades cargadas', userActivities);
+                return userActivities;
+            } catch (error) {
+                debugLog('Error cargando actividades', error);
+                userActivities = [];
+                return [];
+            }
+        }
+
+        async function loadRanking() {
+            debugLog('Cargando ranking con JSONP');
+            
+            try {
+                rankingData = await apiRequestJSONP('ranking');
+                debugLog('Ranking cargado', rankingData);
+                return rankingData;
+            } catch (error) {
+                debugLog('Error cargando ranking', error);
+                return null;
+            }
+        }
+
+        async function addActivity(fecha, distancia, tipo, comentario) {
+            debugLog('Añadiendo actividad con JSONP', { fecha, distancia, tipo, comentario });
+            
+            try {
+                const result = await apiRequestJSONP('activities', {
+                    action: 'add',
+                    usuarioId: currentUser.id,
+                    fecha,
+                    distancia,
+                    tipo,
+                    comentario
+                });
+                
+                debugLog('Actividad añadida', result);
+                return result;
+            } catch (error) {
+                debugLog('Error añadiendo actividad', error);
+                throw error;
+            }
+        }
+
+        // ============================================
+        // FUNCIONES DE AUTENTICACIÓN
+        // ============================================
+
+        function logout() {
+            debugLog('Cerrando sesión');
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            showPage('loginPage');
+        }
+
+        function getCurrentUser() {
+            const stored = localStorage.getItem('currentUser');
+            return stored ? JSON.parse(stored) : null;
+        }
+
+        // ============================================
+        // FUNCIONES DE INTERFAZ
+        // ============================================
+
+        function showPage(pageId) {
+            document.querySelectorAll('[id$="Page"]').forEach(page => {
+                page.classList.remove('page-visible');
+                page.classList.add('page-hidden');
+            });
+
+            document.getElementById(pageId).classList.remove('page-hidden');
+            document.getElementById(pageId).classList.add('page-visible');
+
+            if (pageId === 'dashboardPage') {
+                initializeDashboard();
+            }
+        }
+
+        function showContent(contentId) {
+            document.querySelectorAll('.page-content').forEach(content => {
+                content.classList.add('page-hidden');
+            });
+            document.getElementById(contentId).classList.remove('page-hidden');
+
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`[data-page="${contentId.replace('Content', '')}"]`).classList.add('active');
+        }
+
+        async function initializeDashboard() {
+            debugLog('Inicializando dashboard');
+            
+            try {
+                // Cargar datos
+                await Promise.all([
+                    loadUserActivities(),
+                    loadRanking()
+                ]);
+
+                // Actualizar interfaz
+                updateDashboardStats();
+                updateRecentActivities();
+                updateGroupProgress();
+                updateMotivationalBanner();
+                initializeMap();
+                updateUserProfile();
+                
+                debugLog('Dashboard inicializado correctamente');
+                
+            } catch (error) {
+                debugLog('Error inicializando dashboard', error);
+                showAlert('dashboardAlerts', 'Error cargando los datos del dashboard', 'warning');
+            }
+        }
+
+        function updateDashboardStats() {
+            if (!rankingData) return;
+
+            const userStats = rankingData.ranking.find(user => user.id === currentUser.id);
+            const totalKm = userStats ? userStats.totalKm : 0;
+            
+            document.getElementById('totalKm').textContent = totalKm.toFixed(1);
+            
+            const userPosition = rankingData.ranking.findIndex(user => user.id === currentUser.id) + 1;
+            document.getElementById('currentPosition').textContent = userPosition + '°';
+            
+            // Find next city
+            const nextCity = ciudades.find(city => city.km > totalKm);
+            document.getElementById('nextCity').textContent = nextCity ? nextCity.nombre : 'ROMA ¡CONQUISTADA!';
+            
+            document.getElementById('userNameNav').textContent = currentUser.nombre;
+        }
+
+        function updateGroupProgress() {
+            if (!rankingData) return;
+
+            const totalGroupKm = rankingData.summary.totalKmGrupo;
+            const progress = Math.min((totalGroupKm / 1634) * 100, 100);
+            
+            document.getElementById('groupProgress').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `${progress.toFixed(1)}%`;
+            document.getElementById('groupTotalKm').textContent = `${totalGroupKm.toFixed(1)} km de 1634 km`;
+        }
+
+        function updateRecentActivities() {
+            const container = document.getElementById('recentActivities');
+            
+            if (!userActivities || userActivities.length === 0) {
+                container.innerHTML = '<p style="color: var(--charcoal); font-style: italic;">No hay batallas registradas. ¡Es hora de conquistar!</p>';
+                return;
+            }
+
+            const recentActivities = userActivities.slice(0, 5);
+            container.innerHTML = recentActivities.map(activity => `
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color: var(--gold) !important;">
+                    <div>
+                        <strong style="color: var(--roman-red);">${parseFloat(activity.distancia).toFixed(1)} km</strong> 
+                        <span style="color: var(--charcoal);">- ${activity.tipo === 'correr' ? '⚔️ Combate' : activity.tipo === 'caminar' ? '🛡️ Marcha' : '🐎 Carros'}</span>
+                        <br><small style="color: var(--bronze);">${formatDate(activity.fecha)}</small>
+                    </div>
+                    <div class="text-end">
+                        <small style="color: var(--charcoal); font-style: italic;">${activity.comentario || 'Victoria silenciosa'}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateActivitiesHistory() {
+            const container = document.getElementById('activitiesHistory');
+            
+            if (!userActivities || userActivities.length === 0) {
+                container.innerHTML = '<p style="color: var(--charcoal); font-style: italic;">No hay batallas registradas. ¡Empieza tu leyenda!</p>';
+                return;
+            }
+
+            container.innerHTML = userActivities.map(activity => `
+                <div class="card mb-2" style="border-color: var(--gold);">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong style="color: var(--roman-red);">${parseFloat(activity.distancia).toFixed(1)} km</strong> 
+                                <span style="color: var(--charcoal);">- ${activity.tipo === 'correr' ? '⚔️ Combate' : activity.tipo === 'caminar' ? '🛡️ Marcha' : '🐎 Carros'}</span>
+                                <br><small style="color: var(--bronze);">${formatDate(activity.fecha)}</small>
+                                ${activity.comentario ? `<br><small style="color: var(--charcoal); font-style: italic;">${activity.comentario}</small>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateRanking() {
+            const container = document.getElementById('generalRanking');
+            
+            if (!rankingData) {
+                container.innerHTML = '<p style="color: var(--charcoal);">Error cargando ranking</p>';
+                return;
+            }
+
+            const ranking = rankingData.ranking;
+            container.innerHTML = ranking.map((user, index) => {
+                let medalClass = 'citizen';
+                let medalIcon = index + 1;
+                let title = 'Recluta';
+                
+                if (index === 0) { 
+                    medalClass = 'emperor'; 
+                    medalIcon = '👑'; 
+                    title = 'Emperador';
+                } else if (index === 1) { 
+                    medalClass = 'centurion'; 
+                    medalIcon = '🥈'; 
+                    title = 'Centurión';
+                } else if (index === 2) { 
+                    medalClass = 'gladiator'; 
+                    medalIcon = '🥉'; 
+                    title = 'Gladiador';
+                }
+
+                return `
+                    <div class="ranking-item ${user.id === currentUser.id ? 'border-warning' : ''}">
+                        <div class="medal ${medalClass}">${medalIcon}</div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1" style="color: var(--roman-red);">
+                                ${user.nombre} ${user.id === currentUser.id ? '(Tú)' : ''}
+                                <span class="badge" style="background: var(--gold); color: var(--charcoal); margin-left: 10px;">${title}</span>
+                            </h6>
+                            <small style="color: var(--charcoal);">${user.totalKm.toFixed(1)} km • ${user.actividades} batallas</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="progress" style="width: 100px; height: 10px; background: var(--charcoal);">
+                                <div class="progress-bar" style="width: ${Math.min((user.totalKm / 1634) * 100, 100)}%"></div>
+                            </div>
+                            <small style="color: var(--bronze);">${((user.totalKm / 1634) * 100).toFixed(1)}%</small>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateUserProfile() {
+            if (!currentUser) return;
+
+            document.getElementById('profileName').textContent = currentUser.nombre;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profileGoal').textContent = currentUser.objetivo || 'No definido';
+            document.getElementById('profileSince').textContent = formatDate(currentUser.fechaRegistro);
+            
+            if (rankingData) {
+                const userStats = rankingData.ranking.find(user => user.id === currentUser.id);
+                if (userStats) {
+                    document.getElementById('profileTotalKm').textContent = userStats.totalKm.toFixed(1);
+                    document.getElementById('profileActivities').textContent = userStats.actividades;
+                    
+                    const avgKm = userStats.actividades > 0 ? (userStats.totalKm / userStats.actividades).toFixed(1) : '0';
+                    document.getElementById('profileAverage').textContent = avgKm;
+                    document.getElementById('profileRank').textContent = getRankTitle(userStats.totalKm);
+                }
+            }
+        }
+
+        function initializeMap() {
+            if (map) {
+                map.remove();
+            }
+
+            map = L.map('map').setView([42.5, 6.0], 6);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add city markers
+            ciudades.forEach((ciudad, index) => {
+                const icon = L.divIcon({
+                    className: 'city-marker',
+                    html: `<div style="background: var(--roman-red); color: var(--gold); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 2px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.3);">${index + 1}</div>`,
+                    iconSize: [35, 35],
+                    iconAnchor: [17, 17]
+                });
+
+                L.marker([ciudad.lat, ciudad.lng], { icon })
+                    .addTo(map)
+                    .bindPopup(`<b style="color: var(--roman-red);">${ciudad.nombre}</b><br>${ciudad.km} km<br><i style="color: var(--bronze);">${ciudad.descripcion}</i>`);
+            });
+
+            updateUserPositions();
+        }
+
+        function updateUserPositions() {
+            if (!rankingData) return;
+
+            // Clear existing user markers
+            userMarkers.forEach(marker => marker.remove());
+            userMarkers = [];
+
+            rankingData.ranking.forEach((user, index) => {
+                const position = calculateUserPosition(user.totalKm);
+                if (position) {
+                    const isCurrentUser = user.id === currentUser.id;
+                    const color = isCurrentUser ? 'var(--gold)' : 'var(--roman-red)';
+                    
+                    const icon = L.divIcon({
+                        className: 'user-marker',
+                        html: `<div style="background: ${color}; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">${user.nombre.charAt(0).toUpperCase()}</div>`,
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+
+                    const marker = L.marker([position.lat, position.lng], { icon })
+                        .addTo(map)
+                        .bindPopup(`<b style="color: var(--roman-red);">${user.nombre}</b><br>${user.totalKm.toFixed(1)} km<br>Rango: ${index + 1}° • ${getRankTitle(user.totalKm)}`);
+                    
+                    userMarkers.push(marker);
+                }
+            });
+        }
+
+        function calculateUserPosition(totalKm) {
+            if (totalKm <= 0) return ciudades[0];
+            if (totalKm >= 1634) return ciudades[ciudades.length - 1];
+
+            // Find the segment where the user is
+            for (let i = 0; i < ciudades.length - 1; i++) {
+                const currentCity = ciudades[i];
+                const nextCity = ciudades[i + 1];
+                
+                if (totalKm >= currentCity.km && totalKm <= nextCity.km) {
+                    const progress = (totalKm - currentCity.km) / (nextCity.km - currentCity.km);
+                    const lat = currentCity.lat + (nextCity.lat - currentCity.lat) * progress;
+                    const lng = currentCity.lng + (nextCity.lng - currentCity.lng) * progress;
+                    return { lat, lng };
+                }
+            }
+
+            return ciudades[ciudades.length - 1];
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('DOM cargado, inicializando aplicación');
+            
+            // Check if user is logged in
+            currentUser = getCurrentUser();
+            if (currentUser) {
+                debugLog('Usuario encontrado en localStorage', currentUser);
+                showPage('dashboardPage');
+            }
+
+            // Set today's date as default
+            document.getElementById('activityDate').value = new Date().toISOString().split('T')[0];
+
+            // Login form
+            document.getElementById('loginFormElement').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                showLoading(submitBtn, true);
+
+                try {
+                    const email = document.getElementById('loginEmail').value;
+                    const password = document.getElementById('loginPassword').value;
+                    
+                    debugLog('Iniciando proceso de login');
+                    await login(email, password);
+                    showAlert('loginAlerts', '¡Bienvenido al Coliseo, gladiador!', 'success');
+                    setTimeout(() => showPage('dashboardPage'), 1000);
+                } catch (error) {
+                    showAlert('loginAlerts', error.message || 'Error al acceder al Coliseo');
+                } finally {
+                    showLoading(submitBtn, false);
+                }
+            });
+
+            // Register form
+            document.getElementById('registerFormElement').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                showLoading(submitBtn, true);
+
+                try {
+                    const nombre = document.getElementById('registerName').value;
+                    const email = document.getElementById('registerEmail').value;
+                    const password = document.getElementById('registerPassword').value;
+                    const objetivo = document.getElementById('registerGoal').value;
+                    
+                    await register(nombre, email, password, objetivo);
+                    showAlert('loginAlerts', '¡Gladiador registrado con éxito! Ahora puedes entrar al Coliseo.', 'success');
+                    document.getElementById('showLogin').click();
+                    document.getElementById('registerFormElement').reset();
+                } catch (error) {
+                    showAlert('loginAlerts', error.message || 'Error al registrar gladiador');
+                } finally {
+                    showLoading(submitBtn, false);
+                }
+            });
+
+            // Activity form
+            document.getElementById('activityForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                showLoading(submitBtn, true);
+
+                try {
+                    const fecha = document.getElementById('activityDate').value;
+                    const distancia = parseFloat(document.getElementById('activityDistance').value);
+                    const tipo = document.getElementById('activityType').value;
+                    const comentario = document.getElementById('activityComment').value;
+                    
+                    await addActivity(fecha, distancia, tipo, comentario);
+                    
+                    // Mensajes épicos de éxito
+                    const successMessages = [
+                        '¡Victoria épica registrada! Los dioses aplauden tu valor.',
+                        '¡Batalla conquistada! Tu gloria resuena en el Coliseo.',
+                        '¡Honor y gloria! Otro paso más hacia Roma imperial.',
+                        '¡Triunfo glorioso! Tu nombre será recordado en la historia.'
+                    ];
+                    
+                    const randomMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
+                    showAlert('dashboardAlerts', randomMessage, 'success');
+                    
+                    // Reset form
+                    document.getElementById('activityForm').reset();
+                    document.getElementById('activityDate').value = new Date().toISOString().split('T')[0];
+                    
+                    // Refresh data
+                    await initializeDashboard();
+                    
+                } catch (error) {
+                    showAlert('dashboardAlerts', error.message || 'Error registrando la batalla');
+                } finally {
+                    showLoading(submitBtn, false);
+                }
+            });
+
+            // Navigation links
+            document.querySelectorAll('[data-page]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.getAttribute('data-page');
+                    showContent(page + 'Content');
+                    
+                    if (page === 'activities') {
+                        updateActivitiesHistory();
+                    } else if (page === 'ranking') {
+                        updateRanking();
+                    } else if (page === 'profile') {
+                        updateUserProfile();
+                    }
+                });
+            });
+
+            // Toggle login/register forms
+            document.getElementById('showRegister').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('loginForm').classList.add('page-hidden');
+                document.getElementById('registerForm').classList.remove('page-hidden');
+                document.getElementById('loginAlerts').innerHTML = '';
+            });
+
+            document.getElementById('showLogin').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('registerForm').classList.add('page-hidden');
+                document.getElementById('loginForm').classList.remove('page-hidden');
+                document.getElementById('loginAlerts').innerHTML = '';
+            });
+
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                if (confirm('¿Estás seguro de que quieres abandonar la arena?')) {
+                    logout();
+                }
+            });
+
+            // Animaciones épicas
+            setInterval(() => {
+                const warriors = document.querySelectorAll('.warrior-animation');
+                warriors.forEach(element => {
+                    element.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        element.style.transform = 'scale(1)';
+                    }, 150);
+                });
+            }, 3000);
+
+            // Mensaje de bienvenida épico
+            if (currentUser) {
+                setTimeout(() => {
+                    const welcomeMessages = [
+                        `¡Salve, ${currentUser.nombre}! El Coliseo te da la bienvenida.`,
+                        `¡Bienvenido de nuevo, gladiador ${currentUser.nombre}!`,
+                        `¡Los dioses sonríen sobre ti, noble ${currentUser.nombre}!`
+                    ];
+                    const randomWelcome = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+                    showAlert('dashboardAlerts', randomWelcome, 'success');
+                }, 1500);
+            }
+        });
+
+        // ============================================
+        // FUNCIONES GLOBALES PARA DEBUG
+        // ============================================
+
+        // Exponer funciones para debug desde consola
+        window.debugLog = debugLog;
+        window.currentUser = () => currentUser;
+        window.API_BASE_URL = API_BASE_URL;
+        
+        // Función para mostrar mensaje épico random
+        window.showEpicMessage = function() {
+            const epicMessages = [
+                'Fortuna audaces iuvat - La fortuna ayuda a los audaces',
+                'Veni, vidi, vici - Vine, vi, vencí',
+                'Memento mori - Recuerda que eres mortal',
+                'Carpe diem - Aprovecha el día',
+                'Audentes fortuna juvat - La fortuna favorece a los atrevidos',
+                'Per aspera ad astra - Por las dificultades hacia las estrellas'
+            ];
+            
+            const randomEpic = epicMessages[Math.floor(Math.random() * epicMessages.length)];
+            showAlert('dashboardAlerts', randomEpic, 'success');
+        };
+    </script>
+</body>
+</html>
